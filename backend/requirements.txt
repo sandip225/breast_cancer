@@ -1,4 +1,4 @@
-# FastAPI Backend Dependencies - Docker Optimized
+# FastAPI Backend Dependencies - Minimal for Docker
 fastapi==0.95.2
 uvicorn[standard]==0.22.0
 python-multipart==0.0.6
@@ -13,9 +13,6 @@ opencv-python-headless==4.8.0.76
 matplotlib==3.7.1
 scipy==1.10.1
 reportlab==4.0.0
-
-# Machine Learning - CPU only
-tensorflow-cpu==2.13.0
 
 # Hugging Face
 huggingface-hub>=0.16.0
