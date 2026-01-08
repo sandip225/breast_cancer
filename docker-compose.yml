@@ -12,6 +12,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MODEL_PATH=/app/models/breast_cancer_model.keras
+      - HF_MODEL_REPO=Bhavanakhatri/breastcancerdetection
     volumes:
       - ./backend:/app
       - ./backend/models:/app/models
