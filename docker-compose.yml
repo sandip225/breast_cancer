@@ -24,8 +24,6 @@ services:
       start_period: 60s
     networks:
       - breast-cancer-network
-    depends_on:
-      - frontend
 
   # Frontend Service - React
   frontend:
