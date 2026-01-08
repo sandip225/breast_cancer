@@ -1,4 +1,4 @@
-# FastAPI Backend Dependencies - Minimal
+# FastAPI Backend Dependencies
 fastapi
 uvicorn[standard]
 python-multipart
@@ -7,3 +7,4 @@ pillow
 numpy
 opencv-python-headless
 requests
+tensorflow
