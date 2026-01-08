@@ -1,0 +1,138 @@
+═══════════════════════════════════════════════════════════════
+  🚀 RENDER DEPLOYMENT - QUICK REFERENCE CARD
+  Breast Cancer Detection System
+═══════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 1: BACKEND DEPLOYMENT (Web Service)                   │
+└─────────────────────────────────────────────────────────────┘
+
+1. Push code to GitHub:
+   └─ Repository: breast-cancer-backend
+
+2. Render Dashboard Settings:
+   ├─ Type: Web Service
+   ├─ Build Command: bash render_build.sh
+   └─ Start Command: bash render_start.sh
+
+3. Environment Variables (MUST ADD!):
+   ┌──────────────────────────────────────────────────────┐
+   │ PYTHON_VERSION = 3.11                                │
+   │ MODEL_PATH = /opt/render/project/src/models/        │
+   │              breast_cancer_model.keras               │
+   │ HF_MODEL_REPO = Bhavanakhatri/breastcancerdetection  │
+   └──────────────────────────────────────────────────────┘
+
+4. Deploy → Wait 10-15 mins → Get Backend URL
+
+5. Test:
+   └─ curl https://YOUR-BACKEND-URL.onrender.com/health
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 2: FRONTEND DEPLOYMENT (Static Site)                  │
+└─────────────────────────────────────────────────────────────┘
+
+1. Build locally:
+   └─ cd frontend && npm run build
+
+2. Push to GitHub:
+   └─ Repository: breast-cancer-frontend
+
+3. Render Dashboard Settings:
+   ├─ Type: Static Site
+   ├─ Build Command: npm install && npm run build
+   └─ Publish Directory: build
+
+4. Environment Variables (MUST ADD!):
+   ┌──────────────────────────────────────────────────────┐
+   │ REACT_APP_API_BASE_URL =                             │
+   │     https://YOUR-BACKEND-URL.onrender.com            │
+   │                                                       │
+   │ Example:                                             │
+   │ https://breast-cancer-backend-3aei.onrender.com      │
+   └──────────────────────────────────────────────────────┘
+
+5. Deploy → Wait 3-5 mins → Get Frontend URL
+
+6. Test:
+   └─ Open https://YOUR-FRONTEND-URL.onrender.com
+
+
+═══════════════════════════════════════════════════════════════
+  ✅ DEPLOYMENT CHECKLIST
+═══════════════════════════════════════════════════════════════
+
+BEFORE STARTING:
+[ ] GitHub account ready
+[ ] Render account created (https://dashboard.render.com)
+[ ] Code in GitHub repositories
+
+BACKEND:
+[ ] Web Service created on Render
+[ ] GitHub repo connected
+[ ] Build command: bash render_build.sh
+[ ] Start command: bash render_start.sh
+[ ] PYTHON_VERSION environment variable added
+[ ] MODEL_PATH environment variable added
+[ ] Deployment successful
+[ ] /health endpoint returns "ok"
+
+FRONTEND:
+[ ] npm run build completed locally
+[ ] Code pushed to GitHub
+[ ] Static Site created on Render
+[ ] Build command: npm install && npm run build
+[ ] Publish directory: build
+[ ] REACT_APP_API_BASE_URL environment variable added
+[ ] Deployment successful
+[ ] Website opens in browser
+[ ] Image upload and analysis working
+
+
+═══════════════════════════════════════════════════════════════
+  🔗 FINAL URLS
+═══════════════════════════════════════════════════════════════
+
+Backend API:   https://breast-cancer-backend-XXXX.onrender.com
+Frontend UI:   https://breast-cancer-ui-XXXX.onrender.com
+API Docs:      https://breast-cancer-backend-XXXX.onrender.com/docs
+
+
+═══════════════════════════════════════════════════════════════
+  💡 IMPORTANT NOTES
+═══════════════════════════════════════════════════════════════
+
+⚠️  Free tier backend spins down after 15 mins inactivity
+⚠️  First request after spin down takes 30-60 seconds
+✅  Frontend is always on (never spins down)
+💰  Upgrade to Starter plan ($7/month) for always-on backend
+
+
+═══════════════════════════════════════════════════════════════
+  🐛 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+❌ "Cannot connect to backend"
+   → Check frontend environment variable
+   → Verify backend URL is correct
+   → Ensure backend is running
+
+❌ "Model not found"
+   → Verify model file in GitHub repo
+   → Check MODEL_PATH environment variable
+
+❌ "Deployment failed"
+   → Check Render logs for errors
+   → Verify all files committed to GitHub
+   → Check requirements.txt is correct
+
+
+═══════════════════════════════════════════════════════════════
+
+Date: January 2, 2026
+Platform: Render.com
+Stack: FastAPI + React + TensorFlow
+
+═══════════════════════════════════════════════════════════════
+

@@ -1,0 +1,26 @@
+# YOLOv8 Breast Cancer Detection Dataset Configuration
+
+# Dataset path (absolute path to dataset folder)
+path: C:\Users\Lenovo\Documents\bhavna\vraj code\bhavna\Breast_Cancer-main\backend\datasets\breast_cancer
+
+# Train/val/test image folders (relative to path above)
+train: images/train
+val: images/val  
+test: images/test
+
+# Cancer type classes
+names:
+  0: Mass
+  1: Calcifications
+  2: Architectural_distortion
+  3: Asymmetry
+  4: Skin_thickening
+
+# Number of classes
+nc: 5
+
+# Dataset information
+dataset_name: Breast Cancer Detection
+description: Mammogram images with annotated cancer regions
+technique: YOLOv8
+
