@@ -243,10 +243,27 @@ def get_model():
     if _model is None:
         # Check if model exists
         if not check_model_exists():
-            raise RuntimeError(
-                f"Model file not found at {MODEL_PATH}. "
-                "Please ensure model file is in the repository."
-            )
+            # Try to download the model
+            print("Attempting to download model...")
+            try:
+                from huggingface_hub import hf_hub_download
+                model_dir = MODEL_PATH.parent
+                model_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Download from Hugging Face
+                hf_hub_download(
+                    repo_id="Bhavanakhatri/breastcancerdetection",
+                    filename="breast_cancer_model.keras",
+                    local_dir=str(model_dir),
+                    local_dir_use_symlinks=False
+                )
+                print(f"✅ Model downloaded successfully to {MODEL_PATH}")
+            except Exception as e:
+                print(f"❌ Failed to download model: {e}")
+                raise RuntimeError(
+                    f"Model file not found at {MODEL_PATH}. "
+                    "Please ensure model file is in the repository or set HF_MODEL_REPO environment variable."
+                )
         
         try:
             # Try loading with safe_mode=False for compatibility
