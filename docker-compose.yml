@@ -13,8 +13,10 @@ services:
       - PYTHONUNBUFFERED=1
       - MODEL_PATH=/app/models/breast_cancer_model.keras
     volumes:
-      - ./backend:/app
-      - ./backend/models:/app/models:ro
+      - ./backend/main.py:/app/main.py
+      - ./backend/grad_cam.py:/app/grad_cam.py
+      - ./backend/report_generator.py:/app/report_generator.py
+      - ./backend/yolo_detector.py:/app/yolo_detector.py
     command: python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
