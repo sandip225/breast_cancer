@@ -513,7 +513,7 @@ function AppContent() {
 
       <header className="header">
         <div className="logo">
-          <img src="/Group 28.png" alt="logo" />
+          <span style={{fontSize: '24px', color: '#E91E8C', fontWeight: 'bold'}}>🎗️</span>
           <span>Breast Cancer Detection System</span>
         </div>
         <div className="header-right">
