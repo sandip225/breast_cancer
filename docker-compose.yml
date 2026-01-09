@@ -14,7 +14,7 @@ services:
       - MODEL_PATH=/app/models/breast_cancer_model.keras
     volumes:
       - ./backend:/app
-      - ./backend/models:/app/models
+      - ./backend/models:/app/models:ro
     command: python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]

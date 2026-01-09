@@ -25,6 +25,9 @@ RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
 # Copy application code
 COPY . .
 
+# Copy model file explicitly (ensure it's included)
+COPY models/breast_cancer_model.keras /app/models/breast_cancer_model.keras
+
 # Ensure models directory exists
 RUN mkdir -p /app/models
 

@@ -225,13 +225,26 @@ def check_model_exists():
     if MODEL_PATH.exists():
         size_mb = MODEL_PATH.stat().st_size / (1024 * 1024)
         if size_mb > 10:  # Valid model should be > 10 MB
-            print(f"✅ Model exists ({size_mb:.1f} MB)")
+            print(f"✅ Model exists ({size_mb:.1f} MB) at {MODEL_PATH}")
             return True
         else:
-            print(f"⚠️ Model file too small ({size_mb:.1f} MB)")
+            print(f"⚠️ Model file too small ({size_mb:.1f} MB) at {MODEL_PATH}")
             return False
     
     print(f"❌ Model file not found at {MODEL_PATH}")
+    print(f"   Expected path: {MODEL_PATH}")
+    print(f"   Current working directory: {Path.cwd()}")
+    print(f"   BASE_DIR: {BASE_DIR}")
+    
+    # List what's in the models directory
+    models_dir = MODEL_PATH.parent
+    if models_dir.exists():
+        print(f"   Contents of {models_dir}:")
+        for item in models_dir.iterdir():
+            print(f"     - {item.name} ({item.stat().st_size / (1024*1024):.1f} MB)")
+    else:
+        print(f"   Models directory doesn't exist: {models_dir}")
+    
     return False
 
 
