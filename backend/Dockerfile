@@ -23,11 +23,20 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
 
 # Copy application code
-COPY *.py ./
-COPY startup.sh ./
+COPY main.py .
+COPY grad_cam.py .
+COPY report_generator.py .
+COPY yolo_detector.py .
+COPY startup.sh .
 
-# Create models directory
+# Create models directory and copy model file
 RUN mkdir -p /app/models
+COPY models/breast_cancer_model.keras /app/models/breast_cancer_model.keras
+
+# Verify model file was copied
+RUN ls -lh /app/models/breast_cancer_model.keras && \
+    SIZE=$(stat -c%s /app/models/breast_cancer_model.keras) && \
+    echo "✅ Model file size: $((SIZE / 1024 / 1024)) MB"
 
 # Make startup script executable
 RUN chmod +x /app/startup.sh
@@ -39,5 +48,6 @@ EXPOSE 8001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
   CMD curl -f http://localhost:8001/health || exit 1
 
-# Run application using startup script
+# Run application
 CMD ["/app/startup.sh"]
+
