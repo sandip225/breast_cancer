@@ -29,14 +29,8 @@ COPY report_generator.py .
 COPY yolo_detector.py .
 COPY startup.sh .
 
-# Create models directory and copy model file
+# Create models directory (will be mounted from host)
 RUN mkdir -p /app/models
-COPY models/breast_cancer_model.keras /app/models/breast_cancer_model.keras
-
-# Verify model file was copied
-RUN ls -lh /app/models/breast_cancer_model.keras && \
-    SIZE=$(stat -c%s /app/models/breast_cancer_model.keras) && \
-    echo "✅ Model file size: $((SIZE / 1024 / 1024)) MB"
 
 # Make startup script executable
 RUN chmod +x /app/startup.sh

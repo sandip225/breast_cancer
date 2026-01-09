@@ -13,6 +13,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MODEL_PATH=/app/models/breast_cancer_model.keras
     volumes:
+      - /home/ubuntu/models:/app/models
       - ./backend/main.py:/app/main.py
       - ./backend/grad_cam.py:/app/grad_cam.py
       - ./backend/report_generator.py:/app/report_generator.py
