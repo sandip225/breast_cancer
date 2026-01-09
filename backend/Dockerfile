@@ -22,13 +22,13 @@ COPY requirements.txt .
 # Install Python dependencies with extended timeout
 RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy application code (Python files, configs, etc.)
+COPY *.py ./
+COPY grad_cam.py ./
+COPY report_generator.py ./
+COPY startup.sh ./
 
-# Copy model file explicitly (ensure it's included)
-COPY models/breast_cancer_model.keras /app/models/breast_cancer_model.keras
-
-# Ensure models directory exists
+# Create models directory
 RUN mkdir -p /app/models
 
 # Make startup script executable

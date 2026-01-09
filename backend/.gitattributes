@@ -1,5 +1,5 @@
 # Git LFS tracking for large model files
-*.keras filter=lfs diff=lfs merge=lfs -text
+# Note: backend/models/ is excluded - we use local files for Docker
 *.pt filter=lfs diff=lfs merge=lfs -text
 *.pth filter=lfs diff=lfs merge=lfs -text
 *.h5 filter=lfs diff=lfs merge=lfs -text
