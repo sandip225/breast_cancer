@@ -242,23 +242,28 @@ _model: Optional[keras.Model] = None
 
 def get_model_path() -> Path:
     """Get the model path, checking multiple locations"""
-    # Check root directory first
+    # Check /app/models first (Docker container)
+    docker_model = Path("/app/models/breast_cancer_model.keras")
+    if docker_model.exists() and docker_model.stat().st_size > 100_000_000:
+        return docker_model
+    
+    # Check root directory
     root_model = BASE_DIR / "breast_cancer_model.keras"
-    if root_model.exists():
+    if root_model.exists() and root_model.stat().st_size > 100_000_000:
         return root_model
     
     # Check backend/models directory
     backend_model = BASE_DIR / "backend" / "models" / "breast_cancer_model.keras"
-    if backend_model.exists():
+    if backend_model.exists() and backend_model.stat().st_size > 100_000_000:
         return backend_model
     
     # Check models directory in root
     models_dir_model = BASE_DIR / "models" / "breast_cancer_model.keras"
-    if models_dir_model.exists():
+    if models_dir_model.exists() and models_dir_model.stat().st_size > 100_000_000:
         return models_dir_model
     
-    # Return default (root) if neither exists
-    return root_model
+    # Return default (Docker path) if none exist
+    return docker_model
 
 
 def download_model_from_hf():

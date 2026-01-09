@@ -22,11 +22,12 @@ COPY requirements.txt .
 # Install Python dependencies with extended timeout
 RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
 
-# Copy all application code
-COPY . .
+# Copy application code
+COPY *.py ./
+COPY startup.sh ./
 
-# Ensure models directory exists with proper permissions
-RUN mkdir -p /app/models && chmod 755 /app/models
+# Create models directory
+RUN mkdir -p /app/models
 
 # Make startup script executable
 RUN chmod +x /app/startup.sh

@@ -16,10 +16,11 @@ if [ -f "$MODEL_PATH" ]; then
     echo "✅ Model found at $MODEL_PATH ($SIZE_MB MB)"
 else
     echo "⚠️  Model not found at $MODEL_PATH"
-    echo "   Expected location: $MODEL_PATH"
-    echo "   Please ensure the model file is in the backend/models/ directory"
+    echo "   Checking directory contents:"
+    ls -lh "$MODELS_DIR" 2>/dev/null || echo "   Directory is empty"
 fi
 
 # Start the application
 echo "🚀 Starting FastAPI application..."
 python -m uvicorn main:app --host 0.0.0.0 --port 8001
+
