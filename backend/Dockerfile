@@ -25,9 +25,8 @@ RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
 # Copy application code
 COPY . .
 
-# Ensure models directory exists and copy model file
+# Ensure models directory exists
 RUN mkdir -p /app/models
-COPY models/breast_cancer_model.keras /app/models/breast_cancer_model.keras 2>/dev/null || true
 
 # Expose port
 EXPOSE 8001

@@ -236,34 +236,17 @@ def check_model_exists():
 
 
 def get_model():
-    """Model sirf ek baar load karo, baar-baar reuse karein."""
+    """Load model from local file."""
     from tensorflow import keras
     
     global _model
     if _model is None:
         # Check if model exists
         if not check_model_exists():
-            # Try to download the model
-            print("Attempting to download model...")
-            try:
-                from huggingface_hub import hf_hub_download
-                model_dir = MODEL_PATH.parent
-                model_dir.mkdir(parents=True, exist_ok=True)
-                
-                # Download from Hugging Face
-                hf_hub_download(
-                    repo_id="Bhavanakhatri/breastcancerdetection",
-                    filename="breast_cancer_model.keras",
-                    local_dir=str(model_dir),
-                    local_dir_use_symlinks=False
-                )
-                print(f"✅ Model downloaded successfully to {MODEL_PATH}")
-            except Exception as e:
-                print(f"❌ Failed to download model: {e}")
-                raise RuntimeError(
-                    f"Model file not found at {MODEL_PATH}. "
-                    "Please ensure model file is in the repository or set HF_MODEL_REPO environment variable."
-                )
+            raise RuntimeError(
+                f"Model file not found at {MODEL_PATH}. "
+                "Please ensure the model file is placed in the backend/models/ directory."
+            )
         
         try:
             # Try loading with safe_mode=False for compatibility

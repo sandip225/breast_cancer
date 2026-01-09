@@ -11,4 +11,3 @@ tensorflow
 matplotlib
 scipy
 reportlab
-huggingface-hub
