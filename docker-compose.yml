@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: breast-cancer-db
+    environment:
+      - POSTGRES_USER=bcuser
+      - POSTGRES_PASSWORD=bcpassword123
+      - POSTGRES_DB=breast_cancer_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bcuser -d breast_cancer_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - breast-cancer-network
+
   # Backend Service - FastAPI
   backend:
     build:
@@ -12,13 +32,22 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MODEL_PATH=/app/models/breast_cancer_model.keras
+      - DATABASE_URL=postgresql://bcuser:bcpassword123@db:5432/breast_cancer_db
+      - SECRET_KEY=your-super-secret-key-change-in-production-123456789
     volumes:
       - /home/ubuntu/models:/app/models
       - ./backend/main.py:/app/main.py
       - ./backend/grad_cam.py:/app/grad_cam.py
       - ./backend/report_generator.py:/app/report_generator.py
       - ./backend/yolo_detector.py:/app/yolo_detector.py
+      - ./backend/database.py:/app/database.py
+      - ./backend/schemas.py:/app/schemas.py
+      - ./backend/auth.py:/app/auth.py
+      - ./backend/api_routes.py:/app/api_routes.py
     command: python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 30s
@@ -59,7 +88,7 @@ networks:
     driver: bridge
 
 volumes:
-  backend_models:
+  postgres_data:
     driver: local
   frontend_node_modules:
     driver: local

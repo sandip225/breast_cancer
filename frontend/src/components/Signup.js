@@ -9,10 +9,11 @@ function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -31,7 +32,10 @@ function Signup() {
       return;
     }
 
-    const result = signup(name, email, password);
+    setLoading(true);
+    const result = await signup(name, email, password);
+    setLoading(false);
+
     if (result.success) {
       navigate('/');
     } else {
@@ -64,6 +68,7 @@ function Signup() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your full name"
               autoComplete="name"
+              disabled={loading}
             />
           </div>
 
@@ -76,6 +81,7 @@ function Signup() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               autoComplete="email"
+              disabled={loading}
             />
           </div>
 
@@ -88,6 +94,7 @@ function Signup() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               autoComplete="new-password"
+              disabled={loading}
             />
           </div>
 
@@ -100,11 +107,12 @@ function Signup() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
               autoComplete="new-password"
+              disabled={loading}
             />
           </div>
 
-          <button type="submit" className="auth-button">
-            Sign Up
+          <button type="submit" className="auth-button" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Sign Up'}
           </button>
 
           <div className="auth-footer">
@@ -122,4 +130,3 @@ function Signup() {
 }
 
 export default Signup;
-

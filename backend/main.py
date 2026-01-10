@@ -8,7 +8,7 @@
 
 # main.py  -> FastAPI backend
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from typing import Dict, Any, Tuple, Optional, List
@@ -17,6 +17,7 @@ import base64
 import io
 import os
 import gc
+import json
 from pathlib import Path
 
 import numpy as np
@@ -27,6 +28,18 @@ from PIL import Image
 
 from grad_cam import create_gradcam_visualization, generate_mammogram_view_analysis
 from report_generator import generate_report_pdf
+
+# Database imports
+try:
+    from database import create_tables, get_db, Analysis, Report, User
+    from api_routes import auth_router, users_router, patients_router, analyses_router, reports_router, dashboard_router
+    from auth import get_optional_user
+    from sqlalchemy.orm import Session
+    DATABASE_AVAILABLE = True
+    print("✅ Database module loaded successfully")
+except ImportError as e:
+    DATABASE_AVAILABLE = False
+    print(f"⚠️ Database not available: {e}")
 
 
 def convert_numpy_types(obj):
@@ -201,6 +214,21 @@ app = FastAPI(
     ),
     version="1.0.0",
 )
+
+# Include database routers if available
+if DATABASE_AVAILABLE:
+    app.include_router(auth_router)
+    app.include_router(users_router)
+    app.include_router(patients_router)
+    app.include_router(analyses_router)
+    app.include_router(reports_router)
+    app.include_router(dashboard_router)
+    
+    # Create database tables on startup
+    @app.on_event("startup")
+    async def startup_event():
+        create_tables()
+        print("✅ Database tables initialized")
 
 # ----------------- MODEL LOADING (shared) -----------------
 BASE_DIR = Path(__file__).resolve().parent

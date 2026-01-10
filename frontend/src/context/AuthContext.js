@@ -2,58 +2,100 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8001';
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
     // Check if user is logged in (from localStorage)
+    const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    if (storedToken && storedUser) {
+      setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
     setLoading(false);
   }, []);
 
-  const login = (email, password) => {
-    // Simple validation for demo purposes
-    // In production, you'd call your backend API here
-    if (email && password) {
-      const userData = {
-        email,
-        name: email.split('@')[0],
-        id: Date.now()
-      };
+  const login = async (email, password) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login/json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.detail || 'Login failed' };
+      }
+
+      const data = await response.json();
+      const accessToken = data.access_token;
+
+      // Get user info
+      const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!userResponse.ok) {
+        return { success: false, error: 'Failed to get user info' };
+      }
+
+      const userData = await userResponse.json();
+
+      setToken(accessToken);
       setUser(userData);
+      localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(userData));
+
       return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
     }
-    return { success: false, error: 'Invalid credentials' };
   };
 
-  const signup = (name, email, password) => {
-    // Simple validation for demo purposes
-    // In production, you'd call your backend API here
-    if (name && email && password) {
-      const userData = {
-        email,
-        name,
-        id: Date.now()
-      };
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return { success: true };
+  const signup = async (name, email, password) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.detail || 'Signup failed' };
+      }
+
+      // Auto login after signup
+      return await login(email, password);
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
     }
-    return { success: false, error: 'All fields are required' };
   };
 
   const logout = () => {
     setUser(null);
+    setToken(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   const value = {
     user,
+    token,
     login,
     signup,
     logout,

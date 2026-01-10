@@ -2,7 +2,7 @@
 fastapi
 uvicorn[standard]
 python-multipart
-pydantic
+pydantic[email]
 pillow
 numpy
 opencv-python-headless
@@ -11,3 +11,13 @@ tensorflow
 matplotlib
 scipy
 reportlab
+
+# Database
+sqlalchemy
+psycopg2-binary
+
+# Authentication
+python-jose[cryptography]
+
+# Environment
+python-dotenv
