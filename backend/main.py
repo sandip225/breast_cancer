@@ -37,9 +37,27 @@ try:
     from sqlalchemy.orm import Session
     DATABASE_AVAILABLE = True
     print("✅ Database module loaded successfully")
-except ImportError as e:
+except Exception as e:
     DATABASE_AVAILABLE = False
-    print(f"⚠️ Database not available: {e}")
+    import traceback
+    print(f"❌ Database import failed: {e}")
+    print("Full traceback:")
+    traceback.print_exc()
+    print("\n⚠️ Auth endpoints will not function without database module.")
+    # Create stub implementations to prevent undefined name errors
+    def create_tables(): pass
+    def get_db(): pass
+    class Session: pass
+    class User: pass
+    class Analysis: pass
+    class Report: pass
+    def get_optional_user(): return None
+    auth_router = None
+    users_router = None
+    patients_router = None
+    analyses_router = None
+    reports_router = None
+    dashboard_router = None
 
 
 def convert_numpy_types(obj):
