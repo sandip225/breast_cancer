@@ -46,7 +46,7 @@ jobs:
       - name: Run tests
         working-directory: ./backend
         env:
-          DATABASE_URL: postgresql://testuser:admin@localhost:5432/test_db
+          DATABASE_URL: postgresql://testuser:admin@localhost:5432/cancer_db
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           MODEL_PATH: ./models/breast_cancer_model.keras
         run: |
