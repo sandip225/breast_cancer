@@ -31,6 +31,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Validate Docker secrets
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ] || [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "ERROR: Set secrets.DOCKER_USERNAME and secrets.DOCKER_PASSWORD in repository settings.";
+            exit 1;
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -60,6 +67,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Validate Docker secrets
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ] || [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "ERROR: Set secrets.DOCKER_USERNAME and secrets.DOCKER_PASSWORD in repository settings.";
+            exit 1;
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
