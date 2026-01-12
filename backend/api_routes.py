@@ -1,6 +1,6 @@
 # api_routes.py - API routes for database operations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -32,7 +32,7 @@ dashboard_router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 # ==================== AUTH ROUTES ====================
 
 @auth_router.post("/signup", response_model=UserResponse)
-async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
+async def signup(user_data: UserCreate, request: Request, db: Session = Depends(get_db)):
     """Register a new user"""
     # Check if user exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
@@ -44,11 +44,28 @@ async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     
     # Create user
     user = create_user(db, user_data.email, user_data.name, user_data.password)
+    
+    # Get IP address (check forwarded header first, then client)
+    ip_address = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+    if not ip_address:
+        ip_address = request.client.host if request.client else "unknown"
+    
+    # Log the signup
+    audit = AuditLog(
+        user_id=user.id, 
+        action="signup", 
+        details="New user registered",
+        ip_address=ip_address,
+        user_agent=request.headers.get("user-agent", "")[:500]
+    )
+    db.add(audit)
+    db.commit()
+    
     return user
 
 
 @auth_router.post("/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """Login and get access token"""
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -64,8 +81,19 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         expires_delta=access_token_expires
     )
     
+    # Get IP address
+    ip_address = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+    if not ip_address:
+        ip_address = request.client.host if request.client else "unknown"
+    
     # Log the login
-    audit = AuditLog(user_id=user.id, action="login", details="User logged in")
+    audit = AuditLog(
+        user_id=user.id, 
+        action="login", 
+        details="User logged in",
+        ip_address=ip_address,
+        user_agent=request.headers.get("user-agent", "")[:500]
+    )
     db.add(audit)
     db.commit()
     
@@ -73,7 +101,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
 
 
 @auth_router.post("/login/json", response_model=Token)
-async def login_json(user_data: UserLogin, db: Session = Depends(get_db)):
+async def login_json(user_data: UserLogin, request: Request, db: Session = Depends(get_db)):
     """Login with JSON body (for frontend)"""
     user = authenticate_user(db, user_data.email, user_data.password)
     if not user:
@@ -87,6 +115,22 @@ async def login_json(user_data: UserLogin, db: Session = Depends(get_db)):
         data={"sub": user.email, "user_id": user.id},
         expires_delta=access_token_expires
     )
+    
+    # Get IP address
+    ip_address = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+    if not ip_address:
+        ip_address = request.client.host if request.client else "unknown"
+    
+    # Log the login
+    audit = AuditLog(
+        user_id=user.id, 
+        action="login", 
+        details="User logged in via JSON",
+        ip_address=ip_address,
+        user_agent=request.headers.get("user-agent", "")[:500]
+    )
+    db.add(audit)
+    db.commit()
     
     return {"access_token": access_token, "token_type": "bearer"}
 

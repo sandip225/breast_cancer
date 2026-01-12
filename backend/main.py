@@ -590,7 +590,10 @@ async def health_check():
 
 
 @app.post("/analyze")
-async def analyze_image(file: UploadFile = File(...)):
+async def analyze_image(
+    file: UploadFile = File(...),
+    authorization: Optional[str] = None
+):
     """
     React se:
     - FormData banake
@@ -601,6 +604,8 @@ async def analyze_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Please upload an image file.")
 
     data = await file.read()
+    file_size = len(data)
+    
     try:
         image = Image.open(io.BytesIO(data)).convert("RGB")
     except Exception:
@@ -616,8 +621,76 @@ async def analyze_image(file: UploadFile = File(...)):
     # Convert numpy types to Python native types for JSON serialization
     analysis = convert_numpy_types(analysis)
     
+    # Save to database if available
+    analysis_id = None
+    if DATABASE_AVAILABLE:
+        try:
+            from database import SessionLocal, Analysis, UploadHistory
+            from auth import decode_token
+            import json
+            
+            db = SessionLocal()
+            user_id = None
+            
+            # Try to get user from token if provided
+            if authorization and authorization.startswith("Bearer "):
+                token = authorization.split(" ")[1]
+                token_data = decode_token(token)
+                if token_data:
+                    user_id = token_data.user_id
+            
+            # Save upload history
+            upload_record = UploadHistory(
+                user_id=user_id,
+                filename=file.filename,
+                file_size=file_size
+            )
+            db.add(upload_record)
+            db.flush()
+            
+            # Save analysis
+            view_analysis = analysis.get("view_analysis", {})
+            stats = analysis.get("stats", {})
+            
+            analysis_record = Analysis(
+                user_id=user_id,
+                filename=file.filename,
+                file_format=analysis.get("file_format"),
+                image_width=analysis.get("image_size", {}).get("width"),
+                image_height=analysis.get("image_size", {}).get("height"),
+                result=analysis.get("result"),
+                confidence=analysis.get("confidence"),
+                benign_prob=analysis.get("benign_prob"),
+                malignant_prob=analysis.get("malignant_prob"),
+                risk_level=analysis.get("risk_level"),
+                risk_icon=analysis.get("risk_icon"),
+                risk_color=analysis.get("risk_color"),
+                view_type=view_analysis.get("view_type"),
+                laterality=view_analysis.get("laterality"),
+                mean_intensity=stats.get("mean_intensity"),
+                std_intensity=stats.get("std_intensity"),
+                min_intensity=stats.get("min_intensity"),
+                max_intensity=stats.get("max_intensity"),
+                brightness=stats.get("brightness"),
+                contrast=stats.get("contrast"),
+                findings_json=json.dumps(analysis.get("findings", {}))
+            )
+            db.add(analysis_record)
+            db.flush()
+            
+            # Update upload history with analysis_id
+            upload_record.analysis_id = analysis_record.id
+            analysis_id = analysis_record.id
+            
+            db.commit()
+            db.close()
+            print(f"✅ Saved analysis {analysis_id} to database")
+        except Exception as e:
+            print(f"⚠️ Failed to save to database: {e}")
+    
     result = {
         **analysis,
+        "analysis_id": analysis_id,
         "stats": {k: float(v) for k, v in analysis["stats"].items()},
         "images": {
             "original": pil_to_base64(images["original"]),
@@ -662,6 +735,8 @@ async def generate_report(
         raise HTTPException(status_code=400, detail="Please upload an image file.")
 
     data = await file.read()
+    file_size = len(data)
+    
     try:
         image = Image.open(io.BytesIO(data)).convert("RGB")
     except Exception:
@@ -710,6 +785,73 @@ async def generate_report(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {exc}")
+
+    # Save to database if available
+    if DATABASE_AVAILABLE:
+        try:
+            from database import SessionLocal, Analysis, Report, UploadHistory
+            import json
+            from datetime import datetime
+            
+            db = SessionLocal()
+            
+            # First save the analysis
+            analysis_data = convert_numpy_types(analysis)
+            stats = analysis_data.get("stats", {})
+            view_data = analysis_data.get("view_analysis", {})
+            
+            analysis_record = Analysis(
+                filename=file.filename,
+                file_format=analysis_data.get("file_format"),
+                image_width=analysis_data.get("image_size", {}).get("width"),
+                image_height=analysis_data.get("image_size", {}).get("height"),
+                result=analysis_data.get("result"),
+                confidence=analysis_data.get("confidence"),
+                benign_prob=analysis_data.get("benign_prob"),
+                malignant_prob=analysis_data.get("malignant_prob"),
+                risk_level=analysis_data.get("risk_level"),
+                risk_icon=analysis_data.get("risk_icon"),
+                risk_color=analysis_data.get("risk_color"),
+                view_type=view_data.get("view_type"),
+                laterality=view_data.get("laterality"),
+                mean_intensity=stats.get("mean_intensity"),
+                std_intensity=stats.get("std_intensity"),
+                min_intensity=stats.get("min_intensity"),
+                max_intensity=stats.get("max_intensity"),
+                brightness=stats.get("brightness"),
+                contrast=stats.get("contrast"),
+                findings_json=json.dumps(analysis_data.get("findings", {}))
+            )
+            db.add(analysis_record)
+            db.flush()
+            
+            # Generate report number
+            report_number = f"RPT-{datetime.now().strftime('%Y%m%d%H%M%S')}-{analysis_record.id}"
+            
+            # Save report
+            report_record = Report(
+                analysis_id=analysis_record.id,
+                report_number=report_number,
+                department=department or "Radiology",
+                request_doctor=request_doctor or "Dr. [Name]",
+                report_by=report_by or "Dr. [Radiologist Name]",
+                pdf_data=pdf_bytes
+            )
+            db.add(report_record)
+            
+            # Save upload history
+            upload_record = UploadHistory(
+                filename=file.filename,
+                file_size=file_size,
+                analysis_id=analysis_record.id
+            )
+            db.add(upload_record)
+            
+            db.commit()
+            db.close()
+            print(f"✅ Saved report {report_number} to database")
+        except Exception as e:
+            print(f"⚠️ Failed to save report to database: {e}")
 
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
