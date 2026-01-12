@@ -215,7 +215,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Include database routers if available
+# Always include database routers (they will handle DB errors gracefully)
 if DATABASE_AVAILABLE:
     app.include_router(auth_router)
     app.include_router(users_router)
@@ -227,8 +227,13 @@ if DATABASE_AVAILABLE:
     # Create database tables on startup
     @app.on_event("startup")
     async def startup_event():
-        create_tables()
-        print("✅ Database tables initialized")
+        try:
+            create_tables()
+            print("✅ Database tables initialized")
+        except Exception as e:
+            print(f"⚠️ Failed to create tables: {e}")
+else:
+    print("❌ Database module not available - auth endpoints will not work")
 
 # ----------------- MODEL LOADING (shared) -----------------
 BASE_DIR = Path(__file__).resolve().parent
