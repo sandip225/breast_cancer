@@ -30,6 +30,13 @@ from grad_cam import create_gradcam_visualization, generate_mammogram_view_analy
 from report_generator import generate_report_pdf
 
 # Database imports
+auth_router = None
+users_router = None
+patients_router = None
+analyses_router = None
+reports_router = None
+dashboard_router = None
+
 try:
     from database import create_tables, get_db, Analysis, Report, User
     from api_routes import auth_router, users_router, patients_router, analyses_router, reports_router, dashboard_router
@@ -43,8 +50,33 @@ except Exception as e:
     print(f"❌ Database import failed: {e}")
     print("Full traceback:")
     traceback.print_exc()
-    print("\n⚠️ Auth endpoints will not function without database module.")
-    # Create stub implementations to prevent undefined name errors
+    print("\n⚠️ Creating fallback auth router...")
+    
+    # Create a fallback auth router so at least /auth/signup returns a proper error
+    from fastapi import APIRouter, HTTPException, status
+    auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
+    
+    @auth_router.post("/signup")
+    async def signup_fallback(user_data: dict):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not available. Authentication service is temporarily unavailable."
+        )
+    
+    @auth_router.post("/login")
+    async def login_fallback(user_data: dict):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not available. Authentication service is temporarily unavailable."
+        )
+    
+    @auth_router.post("/login/json")
+    async def login_json_fallback(credentials: dict):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not available. Authentication service is temporarily unavailable."
+        )
+    
     def create_tables(): pass
     def get_db(): pass
     class Session: pass
@@ -52,12 +84,6 @@ except Exception as e:
     class Analysis: pass
     class Report: pass
     def get_optional_user(): return None
-    auth_router = None
-    users_router = None
-    patients_router = None
-    analyses_router = None
-    reports_router = None
-    dashboard_router = None
 
 
 def convert_numpy_types(obj):
@@ -233,9 +259,11 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Always include database routers (they will handle DB errors gracefully)
+# Always include auth router (either real or fallback)
+app.include_router(auth_router)
+
+# Include other routers only if database is available
 if DATABASE_AVAILABLE:
-    app.include_router(auth_router)
     app.include_router(users_router)
     app.include_router(patients_router)
     app.include_router(analyses_router)
@@ -251,7 +279,7 @@ if DATABASE_AVAILABLE:
         except Exception as e:
             print(f"⚠️ Failed to create tables: {e}")
 else:
-    print("❌ Database module not available - auth endpoints will not work")
+    print("❌ Database module not available - other routers not mounted")
 
 # ----------------- MODEL LOADING (shared) -----------------
 BASE_DIR = Path(__file__).resolve().parent
