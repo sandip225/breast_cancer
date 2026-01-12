@@ -40,7 +40,7 @@ function Login() {
 
       <div className="auth-card">
         <div className="auth-header">
-          <h1>Welcome Back</h1>
+          <h1>Welcome Back User</h1>
           <p>Login to access Breast Cancer Detection</p>
         </div>
 
