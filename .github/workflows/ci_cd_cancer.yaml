@@ -9,7 +9,7 @@ on:
 
 jobs:
   # ==================== COMPILE ====================
-  compile:
+  compile_frontend:
     name: Syntax Check frontend
     runs-on: ubuntu-latest
     steps:
