@@ -7,10 +7,10 @@ on:
      branches:
       - main
 
-# ==================== COMPILE FRONTEND & BACKEND ====================
-jobs: 
-  compile_frontend:
-    name: Syntax Check frontend
+jobs:
+  # ==================== COMPILE ====================
+  compile:
+    name: Syntax Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
