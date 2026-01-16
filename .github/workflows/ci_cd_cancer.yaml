@@ -10,7 +10,7 @@ on:
 jobs:
   # ==================== COMPILE ====================
   compile:
-    name: Syntax Check
+    name: Syntax Check frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
