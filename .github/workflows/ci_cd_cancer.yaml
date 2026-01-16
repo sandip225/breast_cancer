@@ -9,7 +9,7 @@ on:
 
 jobs:
   # ==================== COMPILE ====================
-  compile_frontend:
+  compile:
     name: Syntax Check frontend
     runs-on: ubuntu-latest
     steps:
@@ -24,7 +24,7 @@ jobs:
   compile_backend:
     name: Syntax Check backend
     runs-on: ubuntu-latest
-    needs: compile_frontend
+    needs: compile
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
